@@ -23,7 +23,7 @@
 ## 环境要求
 - Python 3.12 及以上版本
 - Tkinter：Python 自带的 GUI 库
-- pyautogui：用于模拟键盘输入
+- pynput：用于模拟键盘输入
 - 其他依赖项在 `requirements.txt` 中列出
 
 ## 安装与运行
