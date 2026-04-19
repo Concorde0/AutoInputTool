@@ -41,7 +41,7 @@ class AutoInputApp:
         self.label = tk.Label(
             root,
             text="自动输入工具",
-            font=("Arial", self.ui_base["title_font_size"], "bold"),
+            font=("Arial", self._scaled_font_size(self.ui_base["title_font_size"]), "bold"),
             bg=self.ui_base["bg_color"],
             fg="#333",
         )
@@ -51,7 +51,7 @@ class AutoInputApp:
         self.shortcut_label = tk.Label(
             root,
             text="快捷键: Ctrl+Shift+V - 直接从剪贴板读取并输入",
-            font=("Arial", self.ui_base["body_font_size"]),
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
             bg=self.ui_base["bg_color"],
             fg="#0066cc",
         )
@@ -60,7 +60,7 @@ class AutoInputApp:
         self.info_label = tk.Label(
             root,
             text="请在下面的文本框中输入或粘贴文本",
-            font=("Arial", self.ui_base["body_font_size"]),
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
             bg=self.ui_base["bg_color"],
             fg="#666",
         )
@@ -70,7 +70,7 @@ class AutoInputApp:
             root,
             height=10,
             width=50,
-            font=("Arial", self.ui_base["body_font_size"]),
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
             wrap="word",
             bg="#ffffff",
             fg="#333",
@@ -81,7 +81,7 @@ class AutoInputApp:
             root,
             text="开始输入",
             command=self.start_input,
-            font=("Arial", self.ui_base["button_font_size"]),
+            font=("Arial", self._scaled_font_size(self.ui_base["button_font_size"])),
             bg="#4CAF50",
             fg="white",
             relief="raised",
@@ -93,7 +93,7 @@ class AutoInputApp:
         self.bottom_label = tk.Label(
             root,
             text="提示：使用快捷键或文本框输入",
-            font=("Arial", self.ui_base["hint_font_size"]),
+            font=("Arial", self._scaled_font_size(self.ui_base["hint_font_size"])),
             bg=self.ui_base["bg_color"],
             fg="#999",
         )
@@ -123,6 +123,10 @@ class AutoInputApp:
 
     def _scaled(self, value):
         return int(round(value * self.ui_scale))
+
+    def _scaled_font_size(self, base_size):
+        # 防止缩放因子异常时出现过小字号，保证基本可读性。
+        return max(8, self._scaled(base_size))
 
     def on_press(self, key):
         # 检测Ctrl和Shift键是否被按下
