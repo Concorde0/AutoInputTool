@@ -1,5 +1,6 @@
 import tkinter as tk
 import time
+import ctypes
 import pyperclip  # 用于访问剪贴板
 from pynput.keyboard import Controller, Key, Listener, KeyCode
 
@@ -7,9 +8,24 @@ from pynput.keyboard import Controller, Key, Listener, KeyCode
 class AutoInputApp:
     def __init__(self, root):
         self.root = root
+
+        # PR1: 统一 UI 基础参数入口，后续 PR 在此基础上扩展字体/布局自适配。
+        self.ui_base = {
+            "window_width": 600,
+            "window_height": 450,
+            "bg_color": "#f0f0f0",
+            "title_font_size": 18,
+            "body_font_size": 12,
+            "button_font_size": 14,
+            "hint_font_size": 10,
+        }
+        self.ui_scale = self._init_ui_scale()
+
         self.root.title("自动输入工具")
-        self.root.geometry("600x450")  # 稍微增加高度以容纳新内容
-        self.root.config(bg="#f0f0f0")
+        self.root.geometry(
+            f"{self._scaled(self.ui_base['window_width'])}x{self._scaled(self.ui_base['window_height'])}"
+        )  # 稍微增加高度以容纳新内容
+        self.root.config(bg=self.ui_base["bg_color"])
 
         # 初始化键盘控制器
         self.keyboard = Controller()
@@ -22,31 +38,95 @@ class AutoInputApp:
         self.listener = Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
-        self.label = tk.Label(root, text="自动输入工具", font=("Arial", 18, "bold"), bg="#f0f0f0", fg="#333")
+        self.label = tk.Label(
+            root,
+            text="自动输入工具",
+            font=("Arial", self._scaled_font_size(self.ui_base["title_font_size"]), "bold"),
+            bg=self.ui_base["bg_color"],
+            fg="#333",
+        )
         self.label.pack(pady=20)
 
         # 添加快捷键说明
-        self.shortcut_label = tk.Label(root, text="快捷键: Ctrl+Shift+V - 直接从剪贴板读取并输入",
-                                       font=("Arial", 12), bg="#f0f0f0", fg="#0066cc")
+        self.shortcut_label = tk.Label(
+            root,
+            text="快捷键: Ctrl+Shift+V - 直接从剪贴板读取并输入",
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
+            bg=self.ui_base["bg_color"],
+            fg="#0066cc",
+        )
         self.shortcut_label.pack(pady=5)
 
-        self.info_label = tk.Label(root, text="请在下面的文本框中输入或粘贴文本", font=("Arial", 12), bg="#f0f0f0",
-                                   fg="#666")
+        self.info_label = tk.Label(
+            root,
+            text="请在下面的文本框中输入或粘贴文本",
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
+            bg=self.ui_base["bg_color"],
+            fg="#666",
+        )
         self.info_label.pack(pady=5)
 
-        self.textbox = tk.Text(root, height=10, width=50, font=("Arial", 12), wrap="word", bg="#ffffff", fg="#333")
+        self.textbox = tk.Text(
+            root,
+            height=10,
+            width=50,
+            font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
+            wrap="word",
+            bg="#ffffff",
+            fg="#333",
+        )
         self.textbox.pack(pady=10)
 
-        self.input_button = tk.Button(root, text="开始输入", command=self.start_input, font=("Arial", 14), bg="#4CAF50",
-                                      fg="white", relief="raised", height=2, width=20)
+        self.input_button = tk.Button(
+            root,
+            text="开始输入",
+            command=self.start_input,
+            font=("Arial", self._scaled_font_size(self.ui_base["button_font_size"])),
+            bg="#4CAF50",
+            fg="white",
+            relief="raised",
+            height=2,
+            width=20,
+        )
         self.input_button.pack(pady=15)
 
-        self.bottom_label = tk.Label(root, text="提示：使用快捷键或文本框输入", font=("Arial", 10), bg="#f0f0f0",
-                                     fg="#999")
+        self.bottom_label = tk.Label(
+            root,
+            text="提示：使用快捷键或文本框输入",
+            font=("Arial", self._scaled_font_size(self.ui_base["hint_font_size"])),
+            bg=self.ui_base["bg_color"],
+            fg="#999",
+        )
         self.bottom_label.pack(pady=10)
 
         # 当窗口关闭时停止监听
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def _init_ui_scale(self):
+        """初始化 Windows DPI 感知并返回统一缩放因子。"""
+        scale = 1.0
+        if self.root.tk.call("tk", "windowingsystem") == "win32":
+            try:
+                # 让进程具备 DPI 感知能力，避免系统位图拉伸。
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+
+            try:
+                dpi = ctypes.windll.user32.GetDpiForSystem()
+                if dpi and dpi > 0:
+                    scale = dpi / 96.0
+            except Exception:
+                pass
+
+        return scale
+
+    def _scaled(self, value):
+        return int(round(value * self.ui_scale))
+
+    def _scaled_font_size(self, base_size):
+        # 防止缩放因子异常时出现过小字号，保证基本可读性。
+        return max(8, self._scaled(base_size))
 
     def on_press(self, key):
         # 检测Ctrl和Shift键是否被按下
