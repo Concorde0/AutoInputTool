@@ -9,10 +9,12 @@ class AutoInputApp:
     def __init__(self, root):
         self.root = root
 
-        # PR1: 统一 UI 基础参数入口，后续 PR 在此基础上扩展字体/布局自适配。
+        # 统一 UI 基础参数入口
         self.ui_base = {
             "window_width": 600,
             "window_height": 450,
+            "window_min_width": 420,
+            "window_min_height": 320,
             "bg_color": "#f0f0f0",
             "title_font_size": 18,
             "body_font_size": 12,
@@ -25,6 +27,10 @@ class AutoInputApp:
         self.root.geometry(
             f"{self._scaled(self.ui_base['window_width'])}x{self._scaled(self.ui_base['window_height'])}"
         )  # 稍微增加高度以容纳新内容
+        self.root.minsize(
+            self._scaled(self.ui_base["window_min_width"]),
+            self._scaled(self.ui_base["window_min_height"]),
+        )
         self.root.config(bg=self.ui_base["bg_color"])
 
         # 初始化键盘控制器
@@ -45,7 +51,7 @@ class AutoInputApp:
             bg=self.ui_base["bg_color"],
             fg="#333",
         )
-        self.label.pack(pady=20)
+        self.label.pack(padx=self._scaled(12), pady=self._scaled(16), anchor="w")
 
         # 添加快捷键说明
         self.shortcut_label = tk.Label(
@@ -55,7 +61,7 @@ class AutoInputApp:
             bg=self.ui_base["bg_color"],
             fg="#0066cc",
         )
-        self.shortcut_label.pack(pady=5)
+        self.shortcut_label.pack(padx=self._scaled(12), pady=self._scaled(4), anchor="w")
 
         self.info_label = tk.Label(
             root,
@@ -64,18 +70,22 @@ class AutoInputApp:
             bg=self.ui_base["bg_color"],
             fg="#666",
         )
-        self.info_label.pack(pady=5)
+        self.info_label.pack(padx=self._scaled(12), pady=self._scaled(4), anchor="w")
 
         self.textbox = tk.Text(
             root,
             height=10,
-            width=50,
             font=("Arial", self._scaled_font_size(self.ui_base["body_font_size"])),
             wrap="word",
             bg="#ffffff",
             fg="#333",
         )
-        self.textbox.pack(pady=10)
+        self.textbox.pack(
+            padx=self._scaled(12),
+            pady=self._scaled(8),
+            fill=tk.BOTH,
+            expand=True,
+        )
 
         self.input_button = tk.Button(
             root,
@@ -85,10 +95,12 @@ class AutoInputApp:
             bg="#4CAF50",
             fg="white",
             relief="raised",
-            height=2,
-            width=20,
         )
-        self.input_button.pack(pady=15)
+        self.input_button.pack(
+            padx=self._scaled(12),
+            pady=self._scaled(10),
+            fill=tk.X,
+        )
 
         self.bottom_label = tk.Label(
             root,
@@ -97,7 +109,7 @@ class AutoInputApp:
             bg=self.ui_base["bg_color"],
             fg="#999",
         )
-        self.bottom_label.pack(pady=10)
+        self.bottom_label.pack(padx=self._scaled(12), pady=self._scaled(8), anchor="w")
 
         # 当窗口关闭时停止监听
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
